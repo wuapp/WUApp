@@ -6,12 +6,12 @@ import "regexp"
 
 type route struct {
 	action func(*Context)
-	paras   []string       //named parameters
-	regex   *regexp.Regexp //if there are parameters
+	paras  []string       //named parameters
+	regex  *regexp.Regexp //if there are parameters
 }
 
 var (
-	namedPart = regexp.MustCompile(`:([^/]+)`)
+	namedPart    = regexp.MustCompile(`:([^/]+)`)
 	escapeRegExp = regexp.MustCompile(`([\-{}\[\]+?.,\\\^$|#\s])`)
 
 	routes = make(map[string]*route)
@@ -31,11 +31,11 @@ func parseRoute(pattern string, route *route) {
 	routes[pattern] = route
 }
 
-func dispatch(url string) (handler func(*Context), params map[string]string) {
+func dispatch(url string) (action func(*Context), params map[string]string) {
 	for key, route := range routes {
 		if route.regex == nil {
 			if key == url {
-				handler = route.handler
+				action = route.action
 				return
 			}
 
@@ -51,11 +51,10 @@ func dispatch(url string) (handler func(*Context), params map[string]string) {
 				for i := 0; i < l; i++ {
 					params[route.paras[i]] = vals[i]
 				}
-				handler = route.handler
+				action = route.action
 				return
 			}
 		}
 	}
 	return
 }
-

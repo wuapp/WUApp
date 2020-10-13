@@ -2,14 +2,14 @@ package wuapp
 
 import (
 	"encoding/json"
+	"github.com/wuapp/util"
 	"net/url"
 	"strconv"
-	"wuapp/util"
 )
 
 type Context struct {
 	message *Message
-	params          map[string]string
+	params  map[string]string
 }
 
 // GetParam get a string parameter from the url
@@ -81,17 +81,16 @@ func (ctx *Context) GetEntity(v interface{}) (err error) {
 func (ctx *Context) Success(feedback ...interface{}) {
 	//if feedback.(type) == byte {}
 	if ctx.message.Success != "" {
-		invokeJavascript(formJsCallString(ctx.message.Success,feedback))
+		invokeJavascript(formJsCallString(ctx.message.Success, feedback))
 	}
 }
 
 func (ctx *Context) Error(err ...interface{}) {
 	if ctx.message.Error != "" {
-		invokeJavascript(formJsCallString(ctx.message.Error,err))
+		invokeJavascript(formJsCallString(ctx.message.Error, err))
 	}
 }
 
-func formJsCallString(funcName string, args []interface{}) string  {
-	return funcName + util.Join(args,",","(",")","'")
+func formJsCallString(funcName string, args []interface{}) string {
+	return funcName + util.JoinEx(args, ",", "(", ")", "'")
 }
-

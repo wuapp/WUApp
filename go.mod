@@ -1,2 +1,2 @@
-module github.com/wuapp/
+module github.com/wuapp/wuapp
 

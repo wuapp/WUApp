@@ -17,20 +17,20 @@ package wuapp
 #include "menu_macos.h"
 #include "window.h"
 
-extern void handleClientReq(const char* s);
+extern void receive(const char* s);
 
-@interface GoUIMessageHandler : NSObject <WKScriptMessageHandler> {
+@interface MessageHandler : NSObject <WKScriptMessageHandler> {
 }
 @end
 
-@implementation GoUIMessageHandler
+@implementation MessageHandler
 - (void)userContentController:(WKUserContentController *)userContentController
       didReceiveScriptMessage:(WKScriptMessage *)message {
-      goUILog("didReceiveScriptMessage: %s\n",[message.name UTF8String]);
-    if ([message.name isEqualToString:@"goui"]) {
+	  //goLog("didReceiveScriptMessage: %s\n",[message.name UTF8String]);
+    if ([message.name isEqualToString:@"wuapp"]) {
     	const char* str = [message.body UTF8String];
-        goUILog("Received event %s\n", str);
-        handleClientReq(str);
+        //goUILog("Received event %s\n", str);
+        receive(str);
         //(_GoString_){str, strlen(str)}
     }
 }
@@ -47,48 +47,48 @@ extern void handleClientReq(const char* s);
 @implementation WindowDelegate
 //@synthesize view = _view;
 - (void)windowDidResize:(NSNotification *)notification {
-    goUILog("windowDidResize\n");
+    //goUILog("windowDidResize\n");
 }
 
 - (void)windowDidMiniaturize:(NSNotification *)notification{
-    goUILog("windowDidMiniaturize\n");
+    //goUILog("windowDidMiniaturize\n");
 }
 - (void)windowDidEnterFullScreen:(NSNotification *)notification {
-    goUILog("windowDidEnterFullScreen\n");
+    //goUILog("windowDidEnterFullScreen\n");
 }
 - (void)windowDidExitFullScreen:(NSNotification *)notification {
-    goUILog("windowDidExitFullScreen\n");
+    //goUILog("windowDidExitFullScreen\n");
 }
 - (void)windowDidBecomeKey:(NSNotification *)notification {
-    goUILog("Window: become key\n");
+    //goUILog("Window: become key\n");
 }
 
 - (void)windowDidBecomeMain:(NSNotification *)notification {
-    goUILog("Window: become main\n");
+    //goUILog("Window: become main\n");
 }
 
 - (void)windowDidResignKey:(NSNotification *)notification {
-    goUILog("Window: resign key\n");
+    //goUILog("Window: resign key\n");
 }
 
 - (void)windowDidResignMain:(NSNotification *)notification {
-    goUILog("Window: resign main\n");
+    //goUILog("Window: resign main\n");
 }
 
 - (void)windowWillClose:(NSNotification *)notification {
     [NSAutoreleasePool new];
-    goUILog("NSWindowDelegate::windowWillClose\n");
+    //goUILog("NSWindowDelegate::windowWillClose\n");
     [NSApp terminate:NSApp];
 }
 @end
 
-@interface GoUIWindow : NSObject {
+@interface WUWindow : NSObject {
 @private
     WKWebView* webView;
 }
 @end
 
-@implementation GoUIWindow
+@implementation WUWindow
 //@synthesize webView = webView_;
 //static WKWebView* webView;
 - (void)create:(struct WindowSettings)settings {
@@ -110,10 +110,10 @@ extern void handleClientReq(const char* s);
         [window cascadeTopLeftFromPoint:NSMakePoint(settings.left,settings.top)];
         [window setTitle:[NSString stringWithUTF8String:settings.title]];
 
-        GoUIMessageHandler* handler = [[GoUIMessageHandler alloc] init];
+        MessageHandler* handler = [[MessageHandler alloc] init];
 
         WKUserContentController *userContentController = [[WKUserContentController alloc] init];
-        [userContentController addScriptMessageHandler:handler name:@"goui"];
+        [userContentController addScriptMessageHandler:handler name:@"wapp"];
         WKWebViewConfiguration *configuration = [[WKWebViewConfiguration alloc] init];
         configuration.userContentController = userContentController;
 
@@ -131,9 +131,9 @@ extern void handleClientReq(const char* s);
 			NSString *bundlePath = [[NSBundle mainBundle] resourcePath];
 			NSString *dir = [bundlePath stringByAppendingPathComponent:[NSString stringWithUTF8String:settings.webDir]];
 			index = [dir stringByAppendingPathComponent:index];
-			goUILog("bundlePath:%s",[bundlePath UTF8String]);
-			goUILog("dir:%s",[dir UTF8String]);
-			goUILog("index:%s",[index UTF8String]);
+			//goUILog("bundlePath:%s",[bundlePath UTF8String]);
+			//goUILog("dir:%s",[dir UTF8String]);
+			//goUILog("index:%s",[index UTF8String]);
 
 			NSURL *nsURL = [NSURL fileURLWithPath:index isDirectory:false];
 			NSURL *nsDir = [NSURL fileURLWithPath:dir isDirectory:true];
@@ -147,9 +147,9 @@ extern void handleClientReq(const char* s);
 
 -(void) evaluateJS:(NSString*)script {
 	printf("window evaluatejs:%p\n",script);
-	char* log = [script UTF8String];
+	const char* log = [script UTF8String];
 printf("window evaluatejs log:%p\n",log);
-    goUILog("evalue:%s",log);
+    //goUILog("evalue:%s",log);
     [webView evaluateJavaScript:script completionHandler:^(id _Nullable response, NSError * _Nullable error) {
         //goUILog("response:%s,error:%s",[response UTF8String],[error UTF8String]);
     }];
@@ -169,30 +169,30 @@ printf("window evaluatejs log:%p\n",log);
 @implementation ApplicationDelegate
 -(void)applicationWillFinishLaunching:(NSNotification *)aNotification
 {
-    goUILog("applicationWillFinishLaunching\n");
+    //goUILog("applicationWillFinishLaunching\n");
     [NSApplication sharedApplication];
-    goUILog("_menuCount: %d\n",_menuCount);
+    //goUILog("_menuCount: %d\n",_menuCount);
     if(_menuCount!=0) {
-    	[GoUIMenu buildMenu:_menuDefs count:_menuCount ];
+    	[WUMenu buildMenu:_menuDefs count:_menuCount ];
     }
     [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
 }
 
 -(void)applicationDidFinishLaunching:(NSNotification *)notification
 {
-	goUILog("applicationDidFinishLaunching\n");
+	//goUILog("applicationDidFinishLaunching\n");
     [NSApplication sharedApplication];
 
     [NSApp activateIgnoringOtherApps:YES];
 }
 @end
 
-@interface GoUIApp : NSObject
+@interface WUApp : NSObject
 
 @end
 
-@implementation GoUIApp
-static GoUIWindow* window;
+@implementation WUApp
+static WUWindow* window;
 
 +(void)initialize {}
 +(void)start:(WindowSettings)settings menuDefs:(struct MenuDef[])menuDefs menuCount: (int)menuCount {
@@ -203,12 +203,12 @@ static GoUIWindow* window;
         ApplicationDelegate* appDelegate = [[ApplicationDelegate alloc] init];
         appDelegate.menuDefs = menuDefs;
         appDelegate.menuCount = menuCount;
-        goUILog("menuCount: %d\n",menuCount);
+        //goUILog("menuCount: %d\n",menuCount);
         [NSApp setDelegate:appDelegate];
 
-        window = [[GoUIWindow alloc] init];
+        window = [[WUWindow alloc] init];
         [window create:settings];
-		goUILog("run loop");
+		//goUILog("run loop");
         [NSApp run];
         //run();
         }
@@ -225,18 +225,18 @@ printf("app evaluatejs:%p\n",js);
 @end
 
 void create(WindowSettings settings, MenuDef* menuDefs, int menuCount) {
-	[GoUIApp start:settings menuDefs:menuDefs menuCount:menuCount];
+	[WUApp start:settings menuDefs:menuDefs menuCount:menuCount];
 }
 
 void invokeJS(const char *js,int fromMainThread) {
-	goUILog("invokeJS 1:%s",js);
+	//goUILog("invokeJS 1:%s",js);
 	NSString* script = [NSString stringWithUTF8String:js];
 	if(fromMainThread) {
-		goUILog("invokeJS script:%s",script);
+		//goUILog("invokeJS script:%s",script);
 NSLog(@"script:%@",script);
 		//[GoUIApp evaluateJS:script];
 	} else {
-		goUILog("invokeJS async:%s",js);
+		//goUILog("invokeJS async:%s",js);
 		//dispatch_async_and_wait(dispatch_get_main_queue(),^{
 		//	[GoUIApp evaluateJS:script];
 		//});
@@ -244,23 +244,23 @@ NSLog(@"script:%@",script);
 }
 
 void invokeJSB(const char *js,int length, int async) {
-	goUILog("invokeJSB:%p",js);
+	//goUILog("invokeJSB:%p",js);
 	NSString* script = [NSString stringWithUTF8String:js];
 	//NSString* script = [[NSString alloc]initWithBytes:js length:length encoding:NSUTF8StringEncoding];
 	if(async) {
-		goUILog("invokeJS async:%s",js);
+		//goUILog("invokeJS async:%s",js);
 		dispatch_async_and_wait(dispatch_get_main_queue(),^{
-			[GoUIApp evaluateJS:script];
+			[WUApp evaluateJS:script];
 		});
 	} else {
-		goUILog("invokeJS script:%p",script);
-		[GoUIApp evaluateJS:script];
+		//goUILog("invokeJS script:%p",script);
+		[WUApp evaluateJS:script];
 
 	}
 }
 
 void exitApp() {
-	[GoUIApp exit];
+	[WUApp exit];
 }
 
 */

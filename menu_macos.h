@@ -5,7 +5,7 @@
 @interface CustomAction : NSObject
 @end
 
-@interface GoUIMenu : NSObject
+@interface WUMenu : NSObject
 +(void)buildMenu:(struct MenuDef[])defs count: (int)count;
 @end
 

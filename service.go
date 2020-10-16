@@ -1,13 +1,19 @@
 package wuapp
 
+/*
+#include <stdlib.h>
+*/
 import "C"
-import "encoding/json"
+import (
+	"encoding/json"
+	"unsafe"
+)
 
 type Message struct {
-	Url     string      `json:"url"`
+	Url     string `json:"url"`
 	Data    string `json:"data"`
-	Success string      `json:"success"`
-	Error   string      `json:"error"`
+	Success string `json:"success"`
+	Error   string `json:"error"`
 }
 
 var clientHandler = "wuapp.receive"
@@ -22,18 +28,20 @@ func Service(url string, action func(*Context)) {
 	parseRoute(url, route)
 }
 
-func Request(msg Message)  {
+func Request(msg Message) {
 	s, err := json.Marshal(msg)
 	if err != nil {
 		return
 	}
 
-	invokeJavascript(clientHandler + "("+ string(s) +")")
+	invokeJavascript(clientHandler + "(" + string(s) + ")")
 	return
 }
 
-func receive(msg *C.char)  {
-	goMsg :=C.GoString(msg)
+//export receive
+func receive(msg *C.char) {
+	goMsg := C.GoString(msg)
+	defer C.free(unsafe.Pointer(msg))
 	//Log("ClientHandler:", message)
 	message := new(Message)
 	err := json.Unmarshal([]byte(goMsg), message)
@@ -42,8 +50,8 @@ func receive(msg *C.char)  {
 		return
 	}
 
-	action,params := dispatch(message.Url)
-	ctx := &Context{message: message,params: params}
+	action, params := dispatch(message.Url)
+	ctx := &Context{message: message, params: params}
 	if action != nil {
 		action(ctx)
 	} else {
@@ -51,4 +59,3 @@ func receive(msg *C.char)  {
 	}
 
 }
-

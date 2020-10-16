@@ -2,6 +2,9 @@
 
 package wuapp
 
+/*
+#include <stdlib.h>
+*/
 import "C"
 import (
 	"fmt"

@@ -29,7 +29,7 @@ extern void receive(const char* s);
 	  //goLog("didReceiveScriptMessage: %s\n",[message.name UTF8String]);
     if ([message.name isEqualToString:@"wuapp"]) {
     	const char* str = [message.body UTF8String];
-        //goUILog("Received event %s\n", str);
+        WULog("Received event %s\n", str);
         receive(str);
         //(_GoString_){str, strlen(str)}
     }
@@ -113,7 +113,7 @@ extern void receive(const char* s);
         MessageHandler* handler = [[MessageHandler alloc] init];
 
         WKUserContentController *userContentController = [[WKUserContentController alloc] init];
-        [userContentController addScriptMessageHandler:handler name:@"wapp"];
+        [userContentController addScriptMessageHandler:handler name:@"wuapp"];
         WKWebViewConfiguration *configuration = [[WKWebViewConfiguration alloc] init];
         configuration.userContentController = userContentController;
 
@@ -171,7 +171,7 @@ printf("window evaluatejs log:%p\n",log);
 {
     //goUILog("applicationWillFinishLaunching\n");
     [NSApplication sharedApplication];
-    //goUILog("_menuCount: %d\n",_menuCount);
+    WULog("_menuCount: %d\n",_menuCount);
     if(_menuCount!=0) {
     	[WUMenu buildMenu:_menuDefs count:_menuCount ];
     }
@@ -203,7 +203,7 @@ static WUWindow* window;
         ApplicationDelegate* appDelegate = [[ApplicationDelegate alloc] init];
         appDelegate.menuDefs = menuDefs;
         appDelegate.menuCount = menuCount;
-        //goUILog("menuCount: %d\n",menuCount);
+        WULog("menuCount: %d\n",menuCount);
         [NSApp setDelegate:appDelegate];
 
         window = [[WUWindow alloc] init];
@@ -215,7 +215,7 @@ static WUWindow* window;
 }
 
 +(void)evaluateJS:(NSString*)js {
-printf("app evaluatejs:%p\n",js);
+WULog("app evaluatejs:%p\n",js);
 	[window evaluateJS:js];
 }
 
@@ -228,18 +228,16 @@ void create(WindowSettings settings, MenuDef* menuDefs, int menuCount) {
 	[WUApp start:settings menuDefs:menuDefs menuCount:menuCount];
 }
 
-void invokeJS(const char *js,int fromMainThread) {
-	//goUILog("invokeJS 1:%s",js);
+void invokeJS(const char *js,int async) {
 	NSString* script = [NSString stringWithUTF8String:js];
-	if(fromMainThread) {
-		//goUILog("invokeJS script:%s",script);
-NSLog(@"script:%@",script);
-		//[GoUIApp evaluateJS:script];
+	if(async) {
+		WULog("invokeJS async:%s",js);
+		dispatch_async_and_wait(dispatch_get_main_queue(),^{
+			[WUApp evaluateJS:script];
+		});
 	} else {
-		//goUILog("invokeJS async:%s",js);
-		//dispatch_async_and_wait(dispatch_get_main_queue(),^{
-		//	[GoUIApp evaluateJS:script];
-		//});
+		WULog("script:%s\n",script);
+		[WUApp evaluateJS:script];
 	}
 }
 

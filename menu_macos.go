@@ -2,12 +2,14 @@ package wuapp
 
 /*
 #include "menu_macos.h"
+#include "util_cocoa.h"
 
 extern void onMenuClick(const char * action);
 
 @implementation CustomAction
 - (void)action:(id)sender {
-    //NSLog(@"click menu:%@",[sender representedObject]);
+    NSLog(@"click menu:%@",[sender representedObject]);
+	WULog("menu clicked\n");
     const char* str = [[sender representedObject] UTF8String];
     //menuClicked((_GoString_){str, strlen(str)});
     onMenuClick(str);

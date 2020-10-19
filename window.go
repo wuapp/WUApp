@@ -1,6 +1,5 @@
 package wuapp
 
-
 /*
 #include <stdlib.h>
 #include "window.h"
@@ -8,6 +7,7 @@ package wuapp
 */
 import "C"
 import (
+	"github.com/wuapp/util"
 	"os"
 	"path"
 	"runtime"
@@ -16,6 +16,8 @@ import (
 
 const defaultDir = "ui"
 const defaultIndex = "index.html"
+
+var menuDefs []MenuDef = nil
 
 func BoolToCInt(b bool) (i C.int) {
 	if b {
@@ -61,7 +63,7 @@ func convertSettings(settings Settings) C.WindowSettings {
 	}
 }
 
-func create(settings Settings, menuDefs []MenuDef) {
+func create(settings Settings) {
 	//C.Create((*C.WindowSettings)(unsafe.Pointer(settings)))
 	cs := convertSettings(settings)
 	cMenuDefs, count := convertMenuDefs(menuDefs)
@@ -72,16 +74,21 @@ func activate() {
 
 }
 
-func invokeJavascript(js string)  {
+func invokeJavascript(funcName string, args ...interface{}) {
+	for i, a := range args {
+		Log("i:", i, "a:", a)
+	}
+	js := funcName + util.JoinEx(args, "(", ",", ")", `"`)
 	cJs := C.CString(js)
 	defer C.free(unsafe.Pointer(cJs))
-	cInvokeJS(cJs,0)
+	Log("invokeJavascript:", js)
+	cInvokeJS(cJs, 0)
 }
 
-func invokeJavascriptAsync(js string)  {
+func invokeJavascriptAsync(js string) {
 	cJs := C.CString(js)
 	defer C.free(unsafe.Pointer(cJs))
-	cInvokeJS(cJs,1)
+	cInvokeJS(cJs, 1)
 }
 
 func exit() {

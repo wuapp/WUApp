@@ -6,10 +6,10 @@ package wuapp
 import "C"
 import (
 	"encoding/json"
-	"unsafe"
 )
 
 type Message struct {
+	Id      string `json:"id"` //for receive request
 	Url     string `json:"url"`
 	Data    string `json:"data"`
 	Success string `json:"success"`
@@ -41,8 +41,8 @@ func Request(msg Message) {
 //export receive
 func receive(msg *C.char) {
 	goMsg := C.GoString(msg)
-	defer C.free(unsafe.Pointer(msg))
-	//Log("ClientHandler:", message)
+	//defer C.free(unsafe.Pointer(msg))
+	Log("ClientHandler:", goMsg)
 	message := new(Message)
 	err := json.Unmarshal([]byte(goMsg), message)
 	if err != nil {
@@ -51,6 +51,7 @@ func receive(msg *C.char) {
 	}
 
 	action, params := dispatch(message.Url)
+	//Log("action",action)
 	ctx := &Context{message: message, params: params}
 	if action != nil {
 		action(ctx)

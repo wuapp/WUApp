@@ -10,16 +10,11 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"unsafe"
 )
 
 //export goLog
 func goLog(msg *C.char) {
-	//s := fmt.Sprintln(msg)
 	s := C.GoString(msg)
-	defer C.free(unsafe.Pointer(msg))
-	//`fmt.Printf("go log: %s\n",s)
-
 	doLog(s)
 }
 

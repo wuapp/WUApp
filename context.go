@@ -2,10 +2,11 @@ package wuapp
 
 import (
 	"encoding/json"
-	"github.com/wuapp/util"
 	"net/url"
 	"strconv"
 )
+
+const callback = "wuapp.callback"
 
 type Context struct {
 	message *Message
@@ -76,21 +77,17 @@ func (ctx *Context) GetEntity(v interface{}) (err error) {
 	return
 }
 
+func (ctx *Context) Done(ok bool, feedback interface{}) {
+	invokeJavascript(callback, ctx.message.Id, ok, feedback)
+}
+
 // feedback should be a primary type, or implement the fmt.Stringer interface
 // if not, convert your value to string first. e.g. string(bytes)
-func (ctx *Context) Success(feedback ...interface{}) {
-	//if feedback.(type) == byte {}
-	if ctx.message.Success != "" {
-		invokeJavascript(formJsCallString(ctx.message.Success, feedback))
-	}
+func (ctx *Context) Success(feedback interface{}) {
+	Log("success:", feedback)
+	ctx.Done(true, feedback)
 }
 
-func (ctx *Context) Error(err ...interface{}) {
-	if ctx.message.Error != "" {
-		invokeJavascript(formJsCallString(ctx.message.Error, err))
-	}
-}
-
-func formJsCallString(funcName string, args []interface{}) string {
-	return funcName + util.JoinEx(args, ",", "(", ")", "'")
+func (ctx *Context) Error(feedback ...interface{}) {
+	ctx.Done(false, feedback)
 }

@@ -8,18 +8,19 @@ import (
 
 const callback = "wuapp.callback"
 
-type Context struct {
-	message *Message
-	params  map[string]string
+type contextBase struct {
+	//message *Message
+	data   []byte
+	params map[string]string
 }
 
 // GetParam get a string parameter from the url
-func (ctx *Context) GetParam(name string) string {
+func (ctx *contextBase) GetParam(name string) string {
 	return ctx.params[name]
 }
 
 // GetParam get a string parameter from the url
-func (ctx *Context) GetUnescapedParam(name string) (val string) {
+func (ctx *contextBase) GetUnescapedParam(name string) (val string) {
 	val, err := url.PathUnescape(ctx.params[name])
 	if err != nil {
 		//Log("Unescape parameter", name, "failed:",err.Error())
@@ -28,7 +29,7 @@ func (ctx *Context) GetUnescapedParam(name string) (val string) {
 }
 
 // GetBoolParam get a bool parameter from the url
-func (ctx *Context) GetBoolParam(name string) (b bool, err error) {
+func (ctx *contextBase) GetBoolParam(name string) (b bool, err error) {
 	str := ctx.GetParam(name)
 	b, err = strconv.ParseBool(str)
 	if err != nil {
@@ -38,7 +39,7 @@ func (ctx *Context) GetBoolParam(name string) (b bool, err error) {
 }
 
 // GetIntParam get a int parameter from the url
-func (ctx *Context) GetIntParam(name string) (i int, err error) {
+func (ctx *contextBase) GetIntParam(name string) (i int, err error) {
 	str := ctx.GetParam(name)
 	i, err = strconv.Atoi(str)
 	if err != nil {
@@ -47,7 +48,7 @@ func (ctx *Context) GetIntParam(name string) (i int, err error) {
 	return
 }
 
-func (ctx *Context) GetIntParamOr(name string, defaultVal int) (i int) {
+func (ctx *contextBase) GetIntParamOr(name string, defaultVal int) (i int) {
 	str := ctx.GetParam(name)
 	var err error
 	i, err = strconv.Atoi(str)
@@ -59,7 +60,7 @@ func (ctx *Context) GetIntParamOr(name string, defaultVal int) (i int) {
 }
 
 // GetFloatParam get a float parameter from the url
-func (ctx *Context) GetFloatParam(name string) (f float64, err error) {
+func (ctx *contextBase) GetFloatParam(name string) (f float64, err error) {
 	str := ctx.GetParam(name)
 	f, err = strconv.ParseFloat(str, 32)
 	if err != nil {
@@ -69,25 +70,11 @@ func (ctx *Context) GetFloatParam(name string) (f float64, err error) {
 }
 
 // GetParam get an entity from the requested data
-func (ctx *Context) GetEntity(v interface{}) (err error) {
-	err = json.Unmarshal([]byte(ctx.message.Data), v)
+func (ctx *contextBase) GetEntity(v interface{}) (err error) {
+	//err = json.Unmarshal([]byte(ctx.message.Data), v)
+	err = json.Unmarshal(ctx.data, v)
 	if err != nil {
 		//Log("get entity failed:", err)
 	}
 	return
-}
-
-func (ctx *Context) Done(ok bool, feedback interface{}) {
-	invokeJavascript(callback, ctx.message.Id, ok, feedback)
-}
-
-// feedback should be a primary type, or implement the fmt.Stringer interface
-// if not, convert your value to string first. e.g. string(bytes)
-func (ctx *Context) Success(feedback interface{}) {
-	Log("success:", feedback)
-	ctx.Done(true, feedback)
-}
-
-func (ctx *Context) Error(feedback ...interface{}) {
-	ctx.Done(false, feedback)
 }

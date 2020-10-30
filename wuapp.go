@@ -1,7 +1,7 @@
 package wuapp
 
 // Settings is to configure the window's appearance
-type Settings struct {
+type WindowSettings struct {
 	Title          string //Title of the application window
 	UIDir          string //Directory of the UI/Web related files, default: "ui"
 	Index          string //Index html file, default: "index.html"
@@ -22,12 +22,12 @@ type Widget interface {
 	Register()
 }
 
-func AddMenu(menuDefArray []MenuDef) {
-	menuDefs = menuDefArray
+func Settings(settings WindowSettings) {
+
 }
 
-func Run(settings Settings) (err error) {
-	create(settings)
+func Run(settings WindowSettings) (err error) {
+	err = create(settings)
 	defer exit()
 
 	return

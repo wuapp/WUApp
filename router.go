@@ -2,16 +2,10 @@ package wuapp
 
 import "regexp"
 
-//type action = func(*Context)
-
-type route struct {
-	action func(*Context)
-	paras  []string       //named parameters
-	regex  *regexp.Regexp //if there are parameters
-}
-
 var (
-	namedPart    = regexp.MustCompile(`:([^/]+)`)
+	namedPart = regexp.MustCompile(`:([^/]+)`)
+	//discard \*.*
+	//custom regexp.MustCompile(`\$(.+)<(.+)>`)
 	escapeRegExp = regexp.MustCompile(`([\-{}\[\]+?.,\\\^$|#\s])`)
 
 	routes = make(map[string]*route)
@@ -31,30 +25,35 @@ func parseRoute(pattern string, route *route) {
 	routes[pattern] = route
 }
 
-func dispatch(url string) (action func(*Context), params map[string]string) {
+func dispatch(url string, ctx *Context) {
+	var action action
 	for key, route := range routes {
 		if route.regex == nil {
 			if key == url {
 				action = route.action
-				return
+				goto A
 			}
-
 		} else {
 			matches := route.regex.FindAllStringSubmatch(url, -1)
 			if matches != nil && len(matches) == 1 {
-				params = make(map[string]string)
 				vals := matches[0][1:]
 				l, lkey := len(vals), len(route.paras)
 				if l > lkey {
 					l = lkey
 				}
 				for i := 0; i < l; i++ {
-					params[route.paras[i]] = vals[i]
+					ctx.params[route.paras[i]] = vals[i]
 				}
 				action = route.action
-				return
+				goto A
 			}
 		}
 	}
-	return
+A:
+	if action != nil {
+		action(ctx)
+	} else {
+		ctx.Error("Function not found ")
+	}
+
 }

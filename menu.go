@@ -1,31 +1,13 @@
+//+build !web
+
 package wuapp
+
 import "C"
 
 /*
 #include "menu.h"
 */
 import "C"
-
-// MenuType is an enum of menu type
-type MenuType int
-
-const (
-	Container MenuType = iota //just a container item for sub items
-	Custom
-	Standard
-	Separator
-)
-
-// MenuDef is to define a menu item
-type MenuDef struct {
-	Type     MenuType
-	Title    string
-	HotKey   string
-	Action   string
-	Handler  func()
-	Children []MenuDef
-}
-
 
 func convertMenuDef(def MenuDef) (cMenuDef C.MenuDef) {
 	cMenuDef = C.MenuDef{}

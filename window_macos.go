@@ -1,4 +1,4 @@
-// +build darwin
+// +build darwin,!web
 // +build amd64,!sim
 
 package wuapp

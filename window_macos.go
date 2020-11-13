@@ -1,7 +1,7 @@
 // +build darwin,!web
 // +build amd64,!sim
 
-package wuapp
+package wua
 
 /*
 #cgo darwin CFLAGS: -x objective-c
@@ -85,6 +85,7 @@ extern void receive(const char* s);
 @interface WUWindow : NSObject {
 @private
     WKWebView* webView;
+	NSURL *nsDir;
 }
 @end
 
@@ -122,27 +123,36 @@ extern void receive(const char* s);
 		[webView.configuration.preferences setValue:@YES forKey:@"allowFileAccessFromFileURLs"];
 		[webView.configuration setValue:@YES forKey:@"allowUniversalAccessFromFileURLs"];
 
-        NSString *index = [NSString stringWithUTF8String:settings.index];
-        if([index hasPrefix:@"http"]) {
-        	NSURL *nsURL = [NSURL URLWithString:index];
-        	NSURLRequest *requestObj = [NSURLRequest requestWithURL:nsURL];
-			[webView loadRequest:requestObj];
-        } else {
-			NSString *bundlePath = [[NSBundle mainBundle] resourcePath];
-			NSString *dir = [bundlePath stringByAppendingPathComponent:[NSString stringWithUTF8String:settings.webDir]];
-			index = [dir stringByAppendingPathComponent:index];
+		NSString *bundlePath = [[NSBundle mainBundle] resourcePath];
+		NSString *dir = [bundlePath stringByAppendingPathComponent:[NSString stringWithUTF8String:settings.webDir]];
+		nsDir = [NSURL fileURLWithPath:dir isDirectory:true];
+
+		if(notEmpty(settings.htmlString)) {
+			[self loadHtml:settings.htmlString];
+		} else {
+        	NSString *index = [NSString stringWithUTF8String:settings.index];
+        	if([index hasPrefix:@"http"]) {
+        		NSURL *nsURL = [NSURL URLWithString:index];
+        		NSURLRequest *requestObj = [NSURLRequest requestWithURL:nsURL];
+				[webView loadRequest:requestObj];
+        	} else {
+				index = [dir stringByAppendingPathComponent:index];
 			//goUILog("bundlePath:%s",[bundlePath UTF8String]);
 			//goUILog("dir:%s",[dir UTF8String]);
 			//goUILog("index:%s",[index UTF8String]);
 
-			NSURL *nsURL = [NSURL fileURLWithPath:index isDirectory:false];
-			NSURL *nsDir = [NSURL fileURLWithPath:dir isDirectory:true];
-			[webView loadFileURL:nsURL allowingReadAccessToURL:nsDir];
+				NSURL *nsURL = [NSURL fileURLWithPath:index isDirectory:false];
+				[webView loadFileURL:nsURL allowingReadAccessToURL:nsDir];
+			}
 		}
-
         [[window contentView] addSubview:webView];
         [window makeKeyAndOrderFront:nil];
     }
+}
+
+-(void)loadHtml:(const char *)html {
+	NSString *str = utf8(html);
+	[webView loadHTMLString:str baseURL:nsDir];
 }
 
 -(void) evaluateJS:(NSString*)script {
@@ -214,6 +224,10 @@ static WUWindow* window;
         }
 }
 
++(void)loadHtml:(const char *)html {
+	[window loadHtml:html];
+}
+
 +(void)evaluateJS:(NSString*)js {
 WULog("app evaluatejs:%p\n",js);
 	[window evaluateJS:js];
@@ -226,6 +240,11 @@ WULog("app evaluatejs:%p\n",js);
 
 void create(WindowSettings settings, MenuDef* menuDefs, int menuCount) {
 	[WUApp start:settings menuDefs:menuDefs menuCount:menuCount];
+}
+
+
+void loadHtml(const char *html) {
+	[WUApp loadHtml:html];
 }
 
 void invokeJS(const char *js,int async) {
@@ -266,6 +285,10 @@ import "C"
 
 func cCreate(cs C.WindowSettings, cMenuDefs *C.MenuDef, count C.int) {
 	C.create(cs, cMenuDefs, count)
+}
+
+func cLoadHtml(html *C.char) {
+	C.loadHtml(html)
 }
 
 func cActivate() {

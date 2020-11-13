@@ -1,19 +1,19 @@
-package wuapp
+package wua
 
 import (
 	"fmt"
 	"github.com/wuapp/rj"
 )
 
-var configFile = "config/dev.rj"
+var configFile = "config.rj"
 
 type config struct {
 	*rj.Node
 }
 
-var Config = initConfig()
+var Config = loadConfig()
 
-func initConfig() *config {
+func loadConfig() *config {
 	cfg := new(config)
 
 	var err error
@@ -24,4 +24,9 @@ func initConfig() *config {
 	}
 
 	return cfg
+}
+
+func GetConfig(c interface{}) (err error) {
+	//Config.GetStruct()
+	return Config.Node.ToStruct(c)
 }

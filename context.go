@@ -1,4 +1,4 @@
-package wuapp
+package wua
 
 import (
 	"encoding/json"
@@ -7,6 +7,21 @@ import (
 )
 
 const callback = "wuapp.callback"
+
+type Context interface {
+	GetParam(name string) string
+	GetParamOr(name, defaultVal string) string
+	GetUnescapedParam(name string) (val string)
+	GetBoolParam(name string) (b bool, err error)
+	GetBoolParamOr(name string, defaultVal bool) (b bool)
+	GetIntParam(name string) (i int, err error)
+	GetIntParamOr(name string, defaultVal int) (i int)
+	GetFloatParam(name string) (f float64, err error)
+	GetFloatParamOr(name string, defaultVal float64) (f float64)
+	GetEntity(v interface{}) (err error)
+	Success(feedback interface{})
+	Error(feedback ...interface{})
+}
 
 type contextBase struct {
 	//message *Message
@@ -17,6 +32,14 @@ type contextBase struct {
 // GetParam get a string parameter from the url
 func (ctx *contextBase) GetParam(name string) string {
 	return ctx.params[name]
+}
+
+func (ctx *contextBase) GetParamOr(name, defaultVal string) string {
+	val := ctx.params[name]
+	if val == "" {
+		return defaultVal
+	}
+	return val
 }
 
 // GetParam get a string parameter from the url
@@ -38,6 +61,16 @@ func (ctx *contextBase) GetBoolParam(name string) (b bool, err error) {
 	return
 }
 
+// GetBoolParamOr get a bool parameter from the url
+func (ctx *contextBase) GetBoolParamOr(name string, defaultVal bool) bool {
+	str := ctx.GetParam(name)
+	b, err := strconv.ParseBool(str)
+	if err != nil {
+		return defaultVal
+	}
+	return b
+}
+
 // GetIntParam get a int parameter from the url
 func (ctx *contextBase) GetIntParam(name string) (i int, err error) {
 	str := ctx.GetParam(name)
@@ -48,14 +81,13 @@ func (ctx *contextBase) GetIntParam(name string) (i int, err error) {
 	return
 }
 
-func (ctx *contextBase) GetIntParamOr(name string, defaultVal int) (i int) {
+func (ctx *contextBase) GetIntParamOr(name string, defaultVal int) int {
 	str := ctx.GetParam(name)
-	var err error
-	i, err = strconv.Atoi(str)
+	i, err := strconv.Atoi(str)
 	if err != nil {
-		i = defaultVal
+		return defaultVal
 	}
-	return
+	return i
 
 }
 
@@ -67,6 +99,16 @@ func (ctx *contextBase) GetFloatParam(name string) (f float64, err error) {
 		//Log("convert data to float failed:", err)
 	}
 	return
+}
+
+func (ctx *contextBase) GetFloatParamOr(name string, defaultVal float64) float64 {
+	str := ctx.GetParam(name)
+	f, err := strconv.ParseFloat(str, 32)
+	if err != nil {
+		//Log("convert data to float failed:", err)
+		return defaultVal
+	}
+	return f
 }
 
 // GetParam get an entity from the requested data

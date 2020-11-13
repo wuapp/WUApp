@@ -1,6 +1,6 @@
 //+build !web
 
-package wuapp
+package wua
 
 /*
 #include <stdlib.h>
@@ -17,13 +17,32 @@ import (
 	"unsafe"
 )
 
-const defaultDir = "ui"
-const defaultIndex = "index.html"
+const UIDir = "ui"
+const indexFile = "index.html"
 const clientHandler = "wuapp.receive"
 
+// Settings is to configure the window's appearance
+type WindowSettings struct {
+	Title          string //Title of the application window
+	UIDir          string //Directory of the UI/Web related files, default: "ui"
+	Index          string //Index html file, default: "index.html"
+	Url            string //Full url address if you don't use WebDir + Index
+	HtmlString     string //Html string to load directly instead of index file
+	Left           int
+	Top            int
+	Width          int
+	Height         int
+	Resizable      bool
+	Closable       bool
+	Miniaturizable bool
+	Borderless     bool
+	FullScreen     bool
+	Debug          bool
+}
+
 var menuDefs []MenuDef = nil
-var windowSettings = WindowSettings{UIDir: defaultDir,
-	Index: defaultIndex,
+var windowSettings = WindowSettings{UIDir: UIDir,
+	Index: indexFile,
 }
 
 func BoolToCInt(b bool) (i C.int) {
@@ -40,11 +59,11 @@ func AddMenu(menuDefArray []MenuDef) {
 func convertSettings(settings WindowSettings) C.WindowSettings {
 	//dir := path.Dir(settings.Url)
 	if settings.UIDir == "" {
-		settings.UIDir = defaultDir
+		settings.UIDir = UIDir
 	}
 
 	if settings.Index == "" {
-		settings.Index = defaultIndex
+		settings.Index = indexFile
 	}
 
 	if settings.Url == "" {
@@ -65,6 +84,7 @@ func convertSettings(settings WindowSettings) C.WindowSettings {
 		//C.CString(abs),
 		C.CString(settings.Index),
 		C.CString(settings.Url),
+		C.CString(settings.HtmlString),
 		C.int(settings.Left),
 		C.int(settings.Top),
 		C.int(settings.Width),
@@ -74,9 +94,12 @@ func convertSettings(settings WindowSettings) C.WindowSettings {
 	}
 }
 
-func create(settings WindowSettings) error {
+func create() error {
 	//C.Create((*C.WindowSettings)(unsafe.Pointer(settings)))
+	var settings WindowSettings
+	settings.HtmlString = `<html><body><p>Hello a!</p></body></html>`
 	cs := convertSettings(settings)
+
 	cMenuDefs, count := convertMenuDefs(menuDefs)
 	cCreate(cs, cMenuDefs, count)
 	return nil

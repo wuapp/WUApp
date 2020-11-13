@@ -1,4 +1,4 @@
-module github.com/wuapp/wuapp
+module github.com/wuapp/wua
 
 go 1.15
 

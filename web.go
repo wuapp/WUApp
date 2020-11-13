@@ -1,6 +1,6 @@
 // +build web
 
-package wuapp
+package wua
 
 import (
 	"net/http"
@@ -30,7 +30,7 @@ func (svc *Service) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	url := req.URL.Path
 	if strings.HasPrefix(url, "/ws") {
-		ctx := newContext(rw, req)
+		ctx := newHttpContext(rw, req)
 		dispatch(url[4:], ctx)
 	} else {
 		if !strings.HasPrefix(url, "/") {

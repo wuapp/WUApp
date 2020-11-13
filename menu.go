@@ -1,6 +1,6 @@
 //+build !web
 
-package wuapp
+package wua
 
 import "C"
 

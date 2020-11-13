@@ -1,4 +1,4 @@
-package wuapp
+package wua
 
 // MenuType is an enum of menu type
 type MenuType int

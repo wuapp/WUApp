@@ -1,6 +1,6 @@
 // +build !android
 
-package wuapp
+package wua
 
 /*
 #include <stdlib.h>

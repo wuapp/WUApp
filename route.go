@@ -1,4 +1,4 @@
-package wuapp
+package wua
 
 import "regexp"
 
@@ -21,13 +21,14 @@ const (
 	HEAD                    = "HEAD"
 )
 
-type action func(*Context)
+type Action func(Context)
+type HttpAction func(*HttpContext)
 
 type route struct {
 	url string
 	//	encoding Encoding
 	httpMethod HttpMethod
-	action     action
+	action     Action
 	paras      []string       //named parameters
 	regex      *regexp.Regexp //if there are parameters
 }
@@ -46,22 +47,22 @@ func Rpc(name string, execFunc func()) *route {
 	return &route{name,Gob,None,execFunc}
 }*/
 
-func Route(url string, action action) {
+func Route(url string, action Action) {
 	parseRoute(url, &route{url: url, httpMethod: GET, action: action})
 }
 
-func Get(url string, action action) {
-	Route(url, action)
+func Get(url string, action HttpAction) {
+	parseRoute(url, &route{url: url, httpMethod: GET, action: action})
 }
 
-func PostRoute(url string, action action) {
+func PostRoute(url string, action HttpAction) {
 	parseRoute(url, &route{url: url, httpMethod: POST, action: action})
 }
 
-func PutRoute(url string, action action) {
+func PutRoute(url string, action HttpAction) {
 	parseRoute(url, &route{url: url, httpMethod: PUT, action: action})
 }
 
-func DeleteRoute(url string, action action) {
+func DeleteRoute(url string, action HttpAction) {
 	parseRoute(url, &route{url: url, httpMethod: DELETE, action: action})
 }

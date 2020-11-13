@@ -1,4 +1,4 @@
-package wuapp
+package wua
 
 import "regexp"
 
